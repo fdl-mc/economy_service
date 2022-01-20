@@ -1,0 +1,9 @@
+version: '3.5'
+
+services:
+  fdl_economy_service:
+    image: fdl-mc/api/economy
+    environment:
+      - POSTGRES_URL=
+    ports:
+      - 8003:8000
