@@ -3,7 +3,7 @@ import ormar
 from economy_service.api.database import database, metadata
 
 
-class EconomyStates(ormar.Model):
+class EconomyState(ormar.Model):
     class Meta:
         tablename: str = "economy_states"
         database = database
