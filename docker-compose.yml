@@ -1,9 +1,22 @@
 version: '3.5'
 
 services:
-  fdl_economy_service:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - 8011:5432
+    environment:
+      - POSTGRES_DB=fdl
+
+  api:
     image: fdl-mc/api/economy
     environment:
-      - POSTGRES_URL=
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
-      - 8003:8000
+      - 8010:8000
+    depends_on:
+      - db
