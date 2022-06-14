@@ -1,10 +1,13 @@
 pub mod config;
+pub mod models;
 pub mod service;
 pub use config::Config;
 
 pub mod proto;
 
 use proto::economy::economy_server::EconomyServer;
+use proto::users::users_client::UsersClient;
+
 use tonic::transport::Server;
 
 #[tokio::main]
@@ -19,10 +22,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .unwrap();
 
-    sqlx::migrate!().run(&pool.clone()).await.unwrap();
+    sqlx::migrate!().run(&pool).await.unwrap();
+
+    let users_client = UsersClient::connect(config.users_service_url.to_owned()).await?;
 
     let addr = "0.0.0.0:8000".parse().unwrap();
-    let economy_service = service::EconomyService {};
+    let economy_service = service::EconomyService {
+        config,
+        pool,
+        users_client,
+    };
 
     tracing::info!(message = "Starting server.", %addr);
 
