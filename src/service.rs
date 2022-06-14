@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use tonic::{transport::Channel, Request, Response, Status};
 
-use crate::models::user_state::UserStateModel;
+use crate::models::economy_state::EconomyStateModel;
 use crate::proto::economy::economy_server::Economy as EconomyServiceTrait;
 use crate::proto::economy::{GetEconomyStateReply, GetEconomyStateRequest, PayReply, PayRequest};
 use crate::proto::users::users_client::UsersClient;
@@ -19,7 +19,7 @@ impl EconomyServiceTrait for EconomyService {
         &self,
         request: Request<GetEconomyStateRequest>,
     ) -> Result<Response<GetEconomyStateReply>, Status> {
-        match UserStateModel::get_by_user_id(request.get_ref().user_id, &self.pool).await {
+        match EconomyStateModel::get_by_user_id(request.get_ref().user_id, &self.pool).await {
             Ok(res) => match res {
                 Some(res) => {
                     let state = res.into_message();

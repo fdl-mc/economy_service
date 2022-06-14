@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users_states (
+CREATE TABLE IF NOT EXISTS economy_states (
     id INT GENERATED ALWAYS AS IDENTITY,
     user_id INT UNIQUE,
     balance INT,

@@ -4,31 +4,31 @@ use sqlx::PgPool;
 type FetchResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[derive(sqlx::FromRow, Default)]
-pub struct UserStateModel {
+pub struct EconomyStateModel {
     pub id: i32,
     pub user_id: i32,
     pub balance: i32,
     pub banker: bool,
 }
 
-impl UserStateModel {
+impl EconomyStateModel {
     pub async fn get_by_user_id(
         user_id: i32,
         pool: &PgPool,
-    ) -> FetchResult<Option<UserStateModel>> {
-        Ok(
-            sqlx::query_as::<_, UserStateModel>("SELECT * FROM users_states WHERE user_id = $1")
-                .bind(user_id)
-                .fetch_optional(pool)
-                .await?,
+    ) -> FetchResult<Option<EconomyStateModel>> {
+        Ok(sqlx::query_as::<_, EconomyStateModel>(
+            "SELECT * FROM economy_states WHERE user_id = $1",
         )
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await?)
     }
 
     pub async fn get_by_user_id_or_create(
         user_id: i32,
         pool: &PgPool,
-    ) -> FetchResult<UserStateModel> {
-        Ok(sqlx::query_as::<_, UserStateModel>("INSERT INTO users_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING; SELECT * FROM users_states WHERE user_id = $1")
+    ) -> FetchResult<EconomyStateModel> {
+        Ok(sqlx::query_as::<_, EconomyStateModel>("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING; SELECT * FROM economy_states WHERE user_id = $1")
             .bind(user_id)
             .bind(0)
             .bind(false)
@@ -37,7 +37,7 @@ impl UserStateModel {
     }
 }
 
-impl UserStateModel {
+impl EconomyStateModel {
     pub fn into_message(&self) -> EconomyStateMessage {
         EconomyStateMessage {
             user_id: self.user_id,
