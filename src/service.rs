@@ -3,7 +3,10 @@ use tonic::{transport::Channel, Request, Response, Status};
 
 use crate::models::economy_state::EconomyStateModel;
 use crate::proto::economy::economy_server::Economy as EconomyServiceTrait;
-use crate::proto::economy::{GetEconomyStateReply, GetEconomyStateRequest, PayReply, PayRequest};
+use crate::proto::economy::{
+    GetEconomyStateReply, GetEconomyStateRequest, GetSelfEconomyStateReply,
+    GetSelfEconomyStateRequest, PayReply, PayRequest,
+};
 use crate::proto::users::users_client::UsersClient;
 use crate::Config;
 
@@ -32,6 +35,13 @@ impl EconomyServiceTrait for EconomyService {
             },
             Err(err) => Err(Status::internal(err.to_string())),
         }
+    }
+
+    async fn get_self_economy_state(
+        &self,
+        _request: Request<GetSelfEconomyStateRequest>,
+    ) -> Result<Response<GetSelfEconomyStateReply>, Status> {
+        Err(Status::unimplemented(""))
     }
 
     async fn pay(&self, _request: Request<PayRequest>) -> Result<Response<PayReply>, Status> {
