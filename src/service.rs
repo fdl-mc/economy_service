@@ -9,6 +9,7 @@ use crate::proto::economy::{
     WithdrawRequest,
 };
 use crate::proto::users::users_client::UsersClient;
+use crate::proto::users::GetSelfUserRequest;
 use crate::Config;
 
 pub struct EconomyService {
@@ -40,9 +41,41 @@ impl EconomyServiceTrait for EconomyService {
 
     async fn get_self_economy_state(
         &self,
-        _request: Request<GetSelfEconomyStateRequest>,
+        request: Request<GetSelfEconomyStateRequest>,
     ) -> Result<Response<GetSelfEconomyStateReply>, Status> {
-        Err(Status::unimplemented(""))
+        let mut users_client = self.users_client.clone();
+
+        // Extract token from metadata
+        let token = match request.metadata().get("x-token") {
+            Some(res) => res.to_str().unwrap().to_string(),
+            None => return Err(Status::unauthenticated("No token provided")),
+        };
+
+        // Prepare request
+        let mut user_request = Request::new(GetSelfUserRequest {});
+        user_request
+            .metadata_mut()
+            .append("x-token", token.parse().unwrap());
+
+        // Fetch user
+        let user = match users_client.get_self_user(user_request).await {
+            //                             KABOoom!!!!
+            Ok(res) => res.into_inner().user.unwrap(),
+            // TODO: maybe handle it a liiiiiittle better?
+            Err(err) => return Err(err),
+        };
+
+        // Fetch or create user state
+        match EconomyStateModel::get_by_user_id_or_create(user.id, &self.pool).await {
+            Ok(res) => {
+                let state = res.into_message();
+                let reply = GetSelfEconomyStateReply {
+                    economy_state: Some(state),
+                };
+                Ok(Response::new(reply))
+            }
+            Err(err) => Err(Status::internal(err.to_string())),
+        }
     }
 
     async fn pay(&self, _request: Request<PayRequest>) -> Result<Response<PayReply>, Status> {
