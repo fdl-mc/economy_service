@@ -4,8 +4,9 @@ use tonic::{transport::Channel, Request, Response, Status};
 use crate::models::economy_state::EconomyStateModel;
 use crate::proto::economy::economy_server::Economy as EconomyServiceTrait;
 use crate::proto::economy::{
-    GetEconomyStateReply, GetEconomyStateRequest, GetSelfEconomyStateReply,
-    GetSelfEconomyStateRequest, PayReply, PayRequest,
+    DepositReply, DepositRequest, GetEconomyStateReply, GetEconomyStateRequest,
+    GetSelfEconomyStateReply, GetSelfEconomyStateRequest, PayReply, PayRequest, WithdrawReply,
+    WithdrawRequest,
 };
 use crate::proto::users::users_client::UsersClient;
 use crate::Config;
@@ -45,6 +46,20 @@ impl EconomyServiceTrait for EconomyService {
     }
 
     async fn pay(&self, _request: Request<PayRequest>) -> Result<Response<PayReply>, Status> {
+        Err(Status::unimplemented(""))
+    }
+
+    async fn deposit(
+        &self,
+        _request: Request<DepositRequest>,
+    ) -> Result<Response<DepositReply>, Status> {
+        Err(Status::unimplemented(""))
+    }
+
+    async fn withdraw(
+        &self,
+        _request: Request<WithdrawRequest>,
+    ) -> Result<Response<WithdrawReply>, Status> {
         Err(Status::unimplemented(""))
     }
 }
