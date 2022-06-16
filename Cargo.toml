@@ -10,7 +10,7 @@ envy = { version = "0.4" }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }
 tower = { version = "0.4", features = ["full"] }
-tonic = { version = "0.7" }
+tonic = { version = "0.7", features = ["tls-roots"] }
 prost-types = { version = "0.10" }
 prost = { version = "0.10" }
 sqlx = { version = "0.5", features = [ "runtime-tokio-native-tls" , "postgres", "migrate" ] }
