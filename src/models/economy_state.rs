@@ -28,12 +28,18 @@ impl EconomyStateModel {
         user_id: i32,
         pool: &PgPool,
     ) -> FetchResult<EconomyStateModel> {
-        Ok(sqlx::query_as::<_, EconomyStateModel>("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING; SELECT * FROM economy_states WHERE user_id = $1")
+        sqlx::query("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
             .bind(user_id)
             .bind(0)
             .bind(false)
-            .fetch_one(pool)
-            .await?)
+            .execute(pool).await?;
+
+        Ok(sqlx::query_as::<_, EconomyStateModel>(
+            "SELECT * FROM economy_states WHERE user_id = $1",
+        )
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?)
     }
 }
 
