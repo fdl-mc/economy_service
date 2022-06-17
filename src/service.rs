@@ -5,8 +5,8 @@ use crate::models::economy_state::EconomyStateModel;
 use crate::proto::economy::economy_server::Economy as EconomyServiceTrait;
 use crate::proto::economy::{
     DepositReply, DepositRequest, GetEconomyStateReply, GetEconomyStateRequest,
-    GetSelfEconomyStateReply, GetSelfEconomyStateRequest, PayReply, PayRequest, WithdrawReply,
-    WithdrawRequest,
+    GetSelfEconomyStateReply, GetSelfEconomyStateRequest, PayReply, PayRequest, RegisterReply,
+    RegisterRequest, WithdrawReply, WithdrawRequest,
 };
 use crate::proto::users::users_client::UsersClient;
 use crate::proto::users::GetSelfUserRequest;
@@ -20,6 +20,13 @@ pub struct EconomyService {
 
 #[tonic::async_trait]
 impl EconomyServiceTrait for EconomyService {
+    async fn register(
+        &self,
+        _request: Request<RegisterRequest>,
+    ) -> Result<Response<RegisterReply>, Status> {
+        Err(Status::unimplemented(""))
+    }
+
     async fn get_economy_state(
         &self,
         request: Request<GetEconomyStateRequest>,
