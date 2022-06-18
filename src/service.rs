@@ -22,9 +22,36 @@ pub struct EconomyService {
 impl EconomyServiceTrait for EconomyService {
     async fn register(
         &self,
-        _request: Request<RegisterRequest>,
+        request: Request<RegisterRequest>,
     ) -> Result<Response<RegisterReply>, Status> {
-        Err(Status::unimplemented(""))
+        let mut users_client = self.users_client.clone();
+
+        // Extract token from metadata
+        let token = match request.metadata().get("x-token") {
+            Some(res) => res.to_str().unwrap().to_string(),
+            None => return Err(Status::unauthenticated("No token provided")),
+        };
+
+        // Prepare request
+        let mut user_request = Request::new(GetSelfUserRequest {});
+        user_request
+            .metadata_mut()
+            .append("x-token", token.parse().unwrap());
+
+        // Fetch user
+        let user = match users_client.get_self_user(user_request).await {
+            Ok(res) => res.into_inner().user.unwrap(),
+            // TODO: handle it better
+            Err(err) => return Err(err),
+        };
+
+        // Register or ignore
+        match EconomyStateModel::create_or_nothing(user.id, &self.pool).await {
+            Ok(_) => (),
+            Err(err) => return Err(Status::internal(err.to_string())),
+        };
+
+        Ok(Response::new(RegisterReply {}))
     }
 
     async fn get_economy_state(
