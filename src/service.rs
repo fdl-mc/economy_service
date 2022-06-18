@@ -72,15 +72,18 @@ impl EconomyServiceTrait for EconomyService {
             Err(err) => return Err(err),
         };
 
-        // Fetch or create user state
-        match EconomyStateModel::get_by_user_id_or_create(user.id, &self.pool).await {
-            Ok(res) => {
-                let state = res.into_message();
-                let reply = GetSelfEconomyStateReply {
-                    economy_state: Some(state),
-                };
-                Ok(Response::new(reply))
-            }
+        // Fetch user state
+        match EconomyStateModel::get_by_user_id(user.id, &self.pool).await {
+            Ok(res) => match res {
+                Some(res) => {
+                    let state = res.into_message();
+                    let reply = GetSelfEconomyStateReply {
+                        economy_state: Some(state),
+                    };
+                    Ok(Response::new(reply))
+                }
+                None => Err(Status::not_found("State not found")),
+            },
             Err(err) => Err(Status::internal(err.to_string())),
         }
     }
