@@ -13,12 +13,11 @@ pub struct EconomyStateModel {
 
 impl EconomyStateModel {
     pub async fn create_or_nothing(user_id: i32, pool: &PgPool) -> FetchResult<()> {
-        let res = sqlx::query("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
+        sqlx::query("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
             .bind(user_id)
             .bind(0)
             .bind(false)
             .execute(pool).await?;
-        tracing::debug!("affected: {}", res.rows_affected());
         Ok(())
     }
 
