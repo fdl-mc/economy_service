@@ -8,6 +8,8 @@ pub mod proto;
 use proto::economy::economy_server::EconomyServer;
 use proto::users::users_client::UsersClient;
 
+use migration::{Migrator, MigratorTrait};
+
 use sea_orm::Database;
 use tonic::transport::Server;
 
@@ -20,6 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = envy::from_env::<Config>().unwrap();
 
     let conn = Database::connect(&config.database_url).await?;
+    Migrator::up(&conn, None).await?;
 
     let users_client = UsersClient::connect(config.users_service_url.to_owned()).await?;
 
