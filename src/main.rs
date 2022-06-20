@@ -8,6 +8,7 @@ pub mod proto;
 use proto::economy::economy_server::EconomyServer;
 use proto::users::users_client::UsersClient;
 
+use sea_orm::Database;
 use tonic::transport::Server;
 
 #[tokio::main]
@@ -18,18 +19,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = envy::from_env::<Config>().unwrap();
 
-    let pool = sqlx::PgPool::connect(&config.database_url.to_owned())
-        .await
-        .unwrap();
-
-    sqlx::migrate!().run(&pool).await.unwrap();
+    let conn = Database::connect(&config.database_url).await?;
 
     let users_client = UsersClient::connect(config.users_service_url.to_owned()).await?;
 
     let addr = "0.0.0.0:8000".parse().unwrap();
     let economy_service = service::EconomyService {
         config,
-        pool,
+        conn,
         users_client,
     };
 

@@ -1,58 +1,30 @@
 use crate::proto::economy::EconomyState as EconomyStateMessage;
-use sqlx::PgPool;
 
-type FetchResult<T> = Result<T, Box<dyn std::error::Error>>;
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(sqlx::FromRow, Default)]
-pub struct EconomyStateModel {
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]
+#[sea_orm(table_name = "economy_states")]
+pub struct Model {
+    #[sea_orm(primary_key)]
     pub id: i32,
     pub user_id: i32,
     pub balance: i32,
     pub banker: bool,
 }
 
-impl EconomyStateModel {
-    pub async fn create_or_nothing(user_id: i32, pool: &PgPool) -> FetchResult<()> {
-        sqlx::query("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
-            .bind(user_id)
-            .bind(0)
-            .bind(false)
-            .execute(pool).await?;
-        Ok(())
-    }
+#[derive(Copy, Clone, Debug, EnumIter)]
+pub enum Relation {}
 
-    pub async fn get_by_user_id(
-        user_id: i32,
-        pool: &PgPool,
-    ) -> FetchResult<Option<EconomyStateModel>> {
-        Ok(sqlx::query_as::<_, EconomyStateModel>(
-            "SELECT * FROM economy_states WHERE user_id = $1",
-        )
-        .bind(user_id)
-        .fetch_optional(pool)
-        .await?)
-    }
-
-    pub async fn get_by_user_id_or_create(
-        user_id: i32,
-        pool: &PgPool,
-    ) -> FetchResult<EconomyStateModel> {
-        sqlx::query("INSERT INTO economy_states (user_id, balance, banker) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
-            .bind(user_id)
-            .bind(0)
-            .bind(false)
-            .execute(pool).await?;
-
-        Ok(sqlx::query_as::<_, EconomyStateModel>(
-            "SELECT * FROM economy_states WHERE user_id = $1",
-        )
-        .bind(user_id)
-        .fetch_one(pool)
-        .await?)
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        panic!("No RelationDef")
     }
 }
 
-impl EconomyStateModel {
+impl ActiveModelBehavior for ActiveModel {}
+
+impl Model {
     pub fn into_message(&self) -> EconomyStateMessage {
         EconomyStateMessage {
             user_id: self.user_id,

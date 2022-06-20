@@ -1,7 +1,7 @@
-use sqlx::PgPool;
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use tonic::{transport::Channel, Request, Response, Status};
 
-use crate::models::economy_state::EconomyStateModel;
+use crate::models::economy_state;
 use crate::proto::economy::economy_server::Economy as EconomyServiceTrait;
 use crate::proto::economy::{
     DepositReply, DepositRequest, GetEconomyStateReply, GetEconomyStateRequest,
@@ -14,7 +14,7 @@ use crate::Config;
 
 pub struct EconomyService {
     pub config: Config,
-    pub pool: PgPool,
+    pub conn: DatabaseConnection,
     pub users_client: UsersClient<Channel>,
 }
 
@@ -46,7 +46,12 @@ impl EconomyServiceTrait for EconomyService {
         };
 
         // Register or ignore
-        match EconomyStateModel::create_or_nothing(user.id, &self.pool).await {
+        let state = economy_state::ActiveModel {
+            user_id: Set(user.id),
+            ..Default::default()
+        };
+
+        match state.insert(&self.conn).await {
             Ok(_) => (),
             Err(err) => return Err(Status::internal(err.to_string())),
         };
@@ -58,7 +63,11 @@ impl EconomyServiceTrait for EconomyService {
         &self,
         request: Request<GetEconomyStateRequest>,
     ) -> Result<Response<GetEconomyStateReply>, Status> {
-        match EconomyStateModel::get_by_user_id(request.get_ref().user_id, &self.pool).await {
+        match economy_state::Entity::find()
+            .filter(economy_state::Column::UserId.eq(request.get_ref().user_id))
+            .one(&self.conn)
+            .await
+        {
             Ok(res) => match res {
                 Some(res) => {
                     let state = res.into_message();
@@ -100,7 +109,11 @@ impl EconomyServiceTrait for EconomyService {
         };
 
         // Fetch user state
-        match EconomyStateModel::get_by_user_id(user.id, &self.pool).await {
+        match economy_state::Entity::find()
+            .filter(economy_state::Column::UserId.eq(user.id))
+            .one(&self.conn)
+            .await
+        {
             Ok(res) => match res {
                 Some(res) => {
                     let state = res.into_message();

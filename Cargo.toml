@@ -13,7 +13,7 @@ tower = { version = "0.4", features = ["full"] }
 tonic = { version = "0.7", features = ["tls-roots"] }
 prost-types = { version = "0.10" }
 prost = { version = "0.10" }
-sqlx = { version = "0.5", features = [ "runtime-tokio-native-tls" , "postgres", "migrate" ] }
+sea-orm = { version = "0.8", features = ["macros", "runtime-tokio-rustls", "sqlx-all"] }
 
 [build-dependencies]
 tonic-build = { version = "0.7" }
