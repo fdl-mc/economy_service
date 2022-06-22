@@ -51,11 +51,11 @@ impl EconomyServiceTrait for EconomyService {
             ..Default::default()
         };
 
-        match state.insert(&self.conn).await {
-            Ok(_) => (),
+        state
+            .insert(&self.conn)
+            .await
             // TODO: handle unique key violation
-            Err(err) => return Err(Status::internal(err.to_string())),
-        };
+            .map_err(|e| Status::internal(e.to_string()))?;
 
         Ok(Response::new(RegisterReply {}))
     }
@@ -72,10 +72,7 @@ impl EconomyServiceTrait for EconomyService {
             .one(&self.conn)
             .await
         {
-            Ok(res) => match res {
-                Some(res) => res,
-                None => return Err(Status::not_found("State not found")),
-            },
+            Ok(res) => res.ok_or(Status::not_found("State not found"))?,
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
@@ -118,10 +115,7 @@ impl EconomyServiceTrait for EconomyService {
             .one(&self.conn)
             .await
         {
-            Ok(res) => match res {
-                Some(res) => res,
-                None => return Err(Status::not_found("State not found")),
-            },
+            Ok(res) => res.ok_or(Status::not_found("State not found"))?,
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
@@ -175,10 +169,7 @@ impl EconomyServiceTrait for EconomyService {
             .one(&self.conn)
             .await
         {
-            Ok(res) => match res {
-                Some(res) => res,
-                None => return Err(Status::not_found("State not found")),
-            },
+            Ok(res) => res.ok_or(Status::not_found("State not found"))?,
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
@@ -193,20 +184,17 @@ impl EconomyServiceTrait for EconomyService {
             .one(&self.conn)
             .await
         {
-            Ok(res) => match res {
-                Some(res) => res,
-                None => return Err(Status::not_found("State not found")),
-            },
+            Ok(res) => res.ok_or(Status::not_found("State not found"))?,
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
         // Update their state
         let mut user_state: economy_state::ActiveModel = user_state.into();
         user_state.balance = Set(user_state.balance.unwrap() + message.amount);
-        match user_state.update(&self.conn).await {
-            Ok(_) => (),
-            Err(err) => return Err(Status::internal(err.to_string())),
-        };
+        user_state
+            .update(&self.conn)
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
 
         // Prepare reply
         Ok(Response::new(DepositReply {}))
@@ -251,10 +239,7 @@ impl EconomyServiceTrait for EconomyService {
             .one(&self.conn)
             .await
         {
-            Ok(res) => match res {
-                Some(res) => res,
-                None => return Err(Status::not_found("State not found")),
-            },
+            Ok(res) => res.ok_or(Status::not_found("State not found"))?,
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
@@ -269,20 +254,17 @@ impl EconomyServiceTrait for EconomyService {
             .one(&self.conn)
             .await
         {
-            Ok(res) => match res {
-                Some(res) => res,
-                None => return Err(Status::not_found("State not found")),
-            },
+            Ok(res) => res.ok_or(Status::not_found("State not found"))?,
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
         // Update their state
         let mut user_state: economy_state::ActiveModel = user_state.into();
         user_state.balance = Set(user_state.balance.unwrap() - message.amount);
-        match user_state.update(&self.conn).await {
-            Ok(_) => (),
-            Err(err) => return Err(Status::internal(err.to_string())),
-        };
+        user_state
+            .update(&self.conn)
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
 
         // Prepare reply
         Ok(Response::new(WithdrawReply {}))
