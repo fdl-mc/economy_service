@@ -53,6 +53,7 @@ impl EconomyServiceTrait for EconomyService {
 
         match state.insert(&self.conn).await {
             Ok(_) => (),
+            // TODO: handle unique key violation
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
@@ -63,23 +64,26 @@ impl EconomyServiceTrait for EconomyService {
         &self,
         request: Request<GetEconomyStateRequest>,
     ) -> Result<Response<GetEconomyStateReply>, Status> {
-        match economy_state::Entity::find()
-            .filter(economy_state::Column::UserId.eq(request.get_ref().user_id))
+        let message = request.get_ref();
+
+        // Fetch the state
+        let state = match economy_state::Entity::find()
+            .filter(economy_state::Column::UserId.eq(message.user_id))
             .one(&self.conn)
             .await
         {
             Ok(res) => match res {
-                Some(res) => {
-                    let state = res.into_message();
-                    let reply = GetEconomyStateReply {
-                        economy_state: Some(state),
-                    };
-                    Ok(Response::new(reply))
-                }
-                None => Err(Status::not_found("State not found")),
+                Some(res) => res,
+                None => return Err(Status::not_found("State not found")),
             },
-            Err(err) => Err(Status::internal(err.to_string())),
-        }
+            Err(err) => return Err(Status::internal(err.to_string())),
+        };
+
+        // Prepare a reply
+        let reply = GetEconomyStateReply {
+            economy_state: Some(state.into_message()),
+        };
+        Ok(Response::new(reply))
     }
 
     async fn get_self_economy_state(
@@ -109,23 +113,23 @@ impl EconomyServiceTrait for EconomyService {
         };
 
         // Fetch user state
-        match economy_state::Entity::find()
+        let state = match economy_state::Entity::find()
             .filter(economy_state::Column::UserId.eq(user.id))
             .one(&self.conn)
             .await
         {
             Ok(res) => match res {
-                Some(res) => {
-                    let state = res.into_message();
-                    let reply = GetSelfEconomyStateReply {
-                        economy_state: Some(state),
-                    };
-                    Ok(Response::new(reply))
-                }
-                None => Err(Status::not_found("State not found")),
+                Some(res) => res,
+                None => return Err(Status::not_found("State not found")),
             },
-            Err(err) => Err(Status::internal(err.to_string())),
-        }
+            Err(err) => return Err(Status::internal(err.to_string())),
+        };
+
+        // Prepare reply
+        let reply = GetSelfEconomyStateReply {
+            economy_state: Some(state.into_message()),
+        };
+        Ok(Response::new(reply))
     }
 
     async fn pay(&self, _request: Request<PayRequest>) -> Result<Response<PayReply>, Status> {
