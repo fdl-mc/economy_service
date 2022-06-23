@@ -166,7 +166,7 @@ impl EconomyServiceTrait for EconomyService {
             Err(err) => return Err(Status::internal(err.to_string())),
         };
 
-        // Check whether payee has enoug money
+        // Check whether payee has enough money
         if payer.balance < message.amount {
             return Err(Status::failed_precondition("Insufficient funds"));
         }
