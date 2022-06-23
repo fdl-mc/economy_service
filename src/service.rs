@@ -126,8 +126,84 @@ impl EconomyServiceTrait for EconomyService {
         Ok(Response::new(reply))
     }
 
-    async fn pay(&self, _request: Request<PayRequest>) -> Result<Response<PayReply>, Status> {
-        Err(Status::unimplemented(""))
+    async fn pay(&self, request: Request<PayRequest>) -> Result<Response<PayReply>, Status> {
+        let message = request.get_ref();
+
+        // Validate request data
+        if !message.amount.is_positive() {
+            return Err(Status::invalid_argument(
+                "Amount should be a positive number",
+            ));
+        }
+
+        // Extract token from metadata
+        let token = match request.metadata().get("x-token") {
+            Some(res) => res.to_str().unwrap().to_string(),
+            None => return Err(Status::unauthenticated("No token provided")),
+        };
+
+        let mut users_client = self.users_client.clone();
+
+        // Fetch payer data
+        let mut user_request = Request::new(GetSelfUserRequest {});
+        user_request
+            .metadata_mut()
+            .append("x-token", token.parse().unwrap());
+
+        let banker_user = match users_client.get_self_user(user_request).await {
+            Ok(res) => res.into_inner().user.unwrap(),
+            // TODO: handle it better
+            Err(err) => return Err(err),
+        };
+
+        // Fetch payer state
+        let payer = match economy_state::Entity::find()
+            .filter(economy_state::Column::UserId.eq(banker_user.id))
+            .one(&self.conn)
+            .await
+        {
+            Ok(res) => res.ok_or(Status::not_found("Requestor's state not found"))?,
+            Err(err) => return Err(Status::internal(err.to_string())),
+        };
+
+        // Check whether payee has enoug money
+        if payer.balance < message.amount {
+            return Err(Status::failed_precondition("Insufficient funds"));
+        }
+
+        // Check whether payee is not the payer
+        if payer.user_id == message.payee {
+            return Err(Status::invalid_argument("Cannot pay to yourself"));
+        }
+
+        // Fetch payee state
+        let payee = match economy_state::Entity::find()
+            .filter(economy_state::Column::UserId.eq(message.payee))
+            .one(&self.conn)
+            .await
+        {
+            Ok(res) => res.ok_or(Status::not_found("Payee's state not found"))?,
+            Err(err) => return Err(Status::internal(err.to_string())),
+        };
+
+        // Update balances
+        let mut payer: economy_state::ActiveModel = payer.into();
+        let mut payee: economy_state::ActiveModel = payee.into();
+
+        payer.balance = Set(payer.balance.unwrap() - message.amount);
+        payee.balance = Set(payee.balance.unwrap() + message.amount);
+
+        payer
+            .update(&self.conn)
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
+        payee
+            .update(&self.conn)
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
+
+        // Prepare response
+        Ok(Response::new(PayReply {}))
     }
 
     async fn deposit(
