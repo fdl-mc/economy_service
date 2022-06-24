@@ -48,6 +48,8 @@ impl EconomyServiceTrait for EconomyService {
         // Register or ignore
         let state = economy_state::ActiveModel {
             user_id: Set(user.id),
+            balance: Set(0),
+            banker: Set(false),
             ..Default::default()
         };
 
