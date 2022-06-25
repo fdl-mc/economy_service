@@ -18,10 +18,10 @@ A main virtual currency payments gateway.
 
 
 ## Environment variables
-| Variable     | Purpose                                           |
-|--------------|---------------------------------------------------|
-| JWT_SECRET   | JWT secret key                                    |
-| DATABASE_URL | Database URL (supports Postgres, MySQL or SQLite) |
+| Variable          | Purpose                                           |
+|-------------------|---------------------------------------------------|
+| USERS_SERVICE_URL | URL to the users service                          |
+| DATABASE_URL      | Database URL (supports Postgres, MySQL or SQLite) |
 
 
 ## License
