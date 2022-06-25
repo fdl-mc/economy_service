@@ -7,7 +7,7 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - 8011:5432
+      - 8031:5432
     environment:
       - POSTGRES_DB=fdl
 
@@ -15,8 +15,8 @@ services:
     image: fdl-mc/api/economy
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
+      - USERS_SERVICE_URL=${USERS_SERVICE_URL}
     ports:
-      - 8010:8000
+      - 8030:8000
     depends_on:
       - db
