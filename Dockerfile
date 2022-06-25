@@ -1,14 +1,6 @@
-FROM python
-
+FROM rust:latest
 WORKDIR /app
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
-
-COPY . ./
-
-CMD ["uvicorn", "economy_service.main:app", "--host", "0.0.0.0"]
-
+COPY . .
+RUN apt update && apt install -y cmake
+RUN cargo install --path .
+CMD ["economy_service"]

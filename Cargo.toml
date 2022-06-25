@@ -1,0 +1,23 @@
+[package]
+name = "economy_service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1" }
+tokio = { version = "1.17", features = ["full"] }
+envy = { version = "0.4" }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3" }
+tower = { version = "0.4", features = ["full"] }
+tonic = { version = "0.7", features = ["tls-roots"] }
+prost-types = { version = "0.10" }
+prost = { version = "0.10" }
+sea-orm = { version = "0.8", features = ["macros", "runtime-tokio-rustls", "sqlx-all"] }
+migration = { path = "migration" }
+
+[workspace]
+members = [".", "migration"]
+
+[build-dependencies]
+tonic-build = { version = "0.7" }
