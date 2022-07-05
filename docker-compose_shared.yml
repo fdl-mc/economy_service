@@ -1,0 +1,19 @@
+version: '3.5'
+
+services:
+  api:
+    image: fdl-mc/api/economy
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - USERS_SERVICE_URL=${USERS_SERVICE_URL}
+    ports:
+      - 8030:8000
+    depends_on:
+      - db
+    networks:
+      - fdl-api
+
+networks:
+  fdl-api: 
+    external:
+      name: fdl-api
