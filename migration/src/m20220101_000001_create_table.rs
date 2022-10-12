@@ -14,6 +14,8 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 sea_query::Table::create()
+                    .table(EconomyStates::Table)
+                    .if_not_exists()
                     .col(
                         ColumnDef::new(EconomyStates::Id)
                             .integer()
