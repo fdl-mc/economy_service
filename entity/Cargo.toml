@@ -1,12 +1,8 @@
 [package]
-name = "entity"
+name = "economy-service-entity"
 version = "0.1.0"
 edition = "2021"
 publish = false
-
-[lib]
-name = "entity"
-path = "src/lib.rs"
 
 [dependencies]
 sea-orm = { version = "0.10.1", features = ["macros", "runtime-tokio-rustls", "sqlx-all"] }
