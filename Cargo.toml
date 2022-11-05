@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [".", "entity", "migration", "core", "users-service-client"]
+members = [".", "entity", "migration", "core", "users-service-client", "api"]
 
 [dependencies]
+economy-service-api = { path = "api" }

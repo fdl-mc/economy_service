@@ -1,3 +1,3 @@
 fn main() {
-    println!("Hello, world!");
+    economy_service_api::main().unwrap();
 }
