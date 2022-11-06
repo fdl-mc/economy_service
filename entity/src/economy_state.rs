@@ -1,18 +1,15 @@
-use poem_openapi::Object;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Economy state of user
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize, Object)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
 #[sea_orm(table_name = "economy_states")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    #[serde(skip_serializing)]
-    #[oai(skip)]
+    #[serde(skip)]
     pub id: i32,
 
-    #[serde(skip_serializing)]
-    #[oai(skip)]
+    #[serde(skip)]
     pub user_id: i32,
 
     /// Balance of user

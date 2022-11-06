@@ -1,3 +1,3 @@
 fn main() {
-    economy_service_api::main().unwrap();
+    economy_service_api::main();
 }

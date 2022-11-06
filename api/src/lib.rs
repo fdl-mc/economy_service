@@ -1,41 +1,20 @@
+use axum::{
+    http::{Request, StatusCode},
+    middleware::{self, Next},
+    response::IntoResponse,
+    routing::get,
+    Extension, Json, Router,
+};
 use economy_service_core::get_or_create_economy_state;
-use economy_service_entity::economy_state;
 use economy_service_migration::{
     sea_orm::{Database, DbConn},
     Migrator, MigratorTrait,
 };
-use poem::{
-    error::InternalServerError, listener::TcpListener, web::Data, EndpointExt, Request, Result,
-    Route, Server,
-};
-use poem_openapi::{
-    auth::ApiKey, payload::Json, ApiResponse, OpenApi, OpenApiService, SecurityScheme,
-};
-use serde::Deserialize;
-use std::sync::Arc;
+use serde::{Deserialize, Serialize};
+use std::{net::SocketAddr, sync::Arc};
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::{GetSelfResponse, User, UsersServiceClient};
-
-#[derive(Debug, SecurityScheme)]
-#[oai(
-    type = "api_key",
-    rename = "Authentication token",
-    key_name = "x-token",
-    in = "header",
-    checker = "api_checker"
-)]
-struct UserAuth(User);
-
-async fn api_checker(req: &Request, token: ApiKey) -> Option<User> {
-    let ctx = req.data::<Arc<AppState>>().unwrap().clone();
-    let client = &ctx.users_client;
-    match client.get_self(token.key).await {
-        Ok(res) => match res {
-            GetSelfResponse::Ok(user) => Some(user),
-            _ => None,
-        },
-        Err(_) => None,
-    }
-}
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -49,60 +28,106 @@ struct AppState {
     conn: DbConn,
 }
 
-#[derive(ApiResponse)]
-enum GetSelfEconomyStateResponse {
-    /// Returns when the query is successful
-    #[oai(status = 200)]
-    Ok(Json<economy_state::Model>),
+#[derive(Debug, Serialize)]
+struct AppError {
+    detail: String,
+}
+impl AppError {
+    fn new(detail: impl Into<String>) -> Self {
+        AppError {
+            detail: detail.into(),
+        }
+    }
 }
 
-#[derive(Debug)]
-struct Api;
+async fn auth_middleware<B>(
+    mut req: Request<B>,
+    next: Next<B>,
+) -> Result<impl IntoResponse, impl IntoResponse> {
+    // Extract token from header
+    let token = req
+        .headers()
+        .get("x-token")
+        .and_then(|t| t.to_str().ok())
+        .ok_or((
+            StatusCode::UNAUTHORIZED,
+            Json(AppError::new("No token provided")),
+        ))?;
 
-#[OpenApi]
-impl Api {
-    #[oai(path = "/me", method = "get")]
-    async fn get_self(
-        &self,
-        user: UserAuth,
-        ctx: Data<&Arc<AppState>>,
-    ) -> Result<GetSelfEconomyStateResponse> {
-        let state = get_or_create_economy_state(user.0.id, &ctx.conn)
-            .await
-            .map_err(InternalServerError)?;
-        Ok(GetSelfEconomyStateResponse::Ok(Json(state)))
-    }
+    // Get users service client from extensions
+    let client = &req
+        .extensions()
+        .get::<Arc<AppState>>()
+        .unwrap()
+        .users_client;
+
+    // Get user
+    let res = client.get_self(token).await.map_err(|err| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(AppError::new(err.to_string())),
+        )
+    })?;
+
+    let user = match res {
+        GetSelfResponse::Ok(user) => user,
+        GetSelfResponse::Unauthenticated => {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(AppError::new("Authentication failed")),
+            ))
+        }
+    };
+
+    // Insert user into extensions
+    req.extensions_mut().insert(user);
+
+    Ok(next.run(req).await)
+}
+
+async fn get_self(user: Extension<User>, state: Extension<Arc<AppState>>) -> impl IntoResponse {
+    get_or_create_economy_state(user.id, &state.conn)
+        .await
+        .map(Json)
+        .map_err(|err| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(AppError::new(err.to_string())),
+            )
+        })
 }
 
 #[tokio::main]
-pub async fn main() -> Result<(), std::io::Error> {
-    if std::env::var_os("RUST_LOG").is_none() {
-        std::env::set_var("RUST_LOG", "poem=info,sqlx=warn");
-    }
-    tracing_subscriber::fmt::init();
+pub async fn main() {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG")
+                .unwrap_or_else(|_| "economy_service_api=debug,tower_http=debug".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     let config = envy::from_env::<Config>().unwrap();
 
     let conn = Database::connect(&config.database_url).await.unwrap();
     let users_client = UsersServiceClient::new(&config.users_service_url);
 
-    let ctx = AppState { users_client, conn };
+    let state = AppState { users_client, conn };
 
-    Migrator::up(&ctx.conn, None).await.unwrap();
+    Migrator::up(&state.conn, None).await.unwrap();
 
-    let api = OpenApiService::new(Api, "Users Service", "1.0");
-    let docs = api.swagger_ui();
-    let openapi_json = api.spec_endpoint();
-    let openapi_yaml = api.spec_endpoint_yaml();
-
-    Server::new(TcpListener::bind("0.0.0.0:3000"))
-        .run(
-            Route::new()
-                .nest("/", api)
-                .nest("/docs", docs)
-                .nest("/docs/openapi.json", openapi_json)
-                .nest("/docs/openapi.yaml", openapi_yaml)
-                .data(Arc::new(ctx)),
+    let app = Router::new()
+        .route(
+            "/me",
+            get(get_self).layer(middleware::from_fn(auth_middleware)),
         )
+        .layer(Extension(Arc::new(state)))
+        .layer(TraceLayer::new_for_http());
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
         .await
+        .unwrap();
 }
