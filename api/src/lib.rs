@@ -53,8 +53,8 @@ pub async fn main() {
         // TODO: maybe include middleware in route?
         .merge(get_self().layer(middleware::from_fn(auth_middleware)))
         .merge(get_by_id())
-        .layer(Extension(Arc::new(state)));
-    // .layer(TraceLayer::new_for_http());
+        .layer(Extension(Arc::new(state)))
+        .layer(TraceLayer::new_for_http());
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
