@@ -13,7 +13,10 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::UsersServiceClient;
 
-use crate::{middlewares::auth_middleware, routes::get_self};
+use crate::{
+    middlewares::auth_middleware,
+    routes::{get_by_id, get_self},
+};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
@@ -49,8 +52,9 @@ pub async fn main() {
     let app = Router::new()
         // TODO: maybe include middleware in route?
         .merge(get_self().layer(middleware::from_fn(auth_middleware)))
-        .layer(Extension(Arc::new(state)))
-        .layer(TraceLayer::new_for_http());
+        .merge(get_by_id())
+        .layer(Extension(Arc::new(state)));
+    // .layer(TraceLayer::new_for_http());
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
