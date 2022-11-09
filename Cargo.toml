@@ -8,3 +8,4 @@ members = [".", "entity", "migration", "core", "users-service-client", "api"]
 
 [dependencies]
 economy-service-api = { path = "api" }
+utoipa = { version = "2.2.0", features = ["axum_extras"] }

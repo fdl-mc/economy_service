@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 sea-orm = { version = "0.10.1", features = ["macros", "runtime-tokio-rustls", "sqlx-all"] }
 serde = { version = "1.0", features = ["derive"] }
+utoipa = { version = "2.2.0", default-features = false }

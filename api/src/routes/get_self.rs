@@ -5,7 +5,15 @@ use users_service_client::User;
 
 use crate::{responses::AppError, AppState};
 
-pub(crate) fn get_self() -> Router {
+#[utoipa::path(
+    get,
+    path = "/me",
+    responses(
+        (status = 200, body = EconomyState)
+    ),
+    security(("api_key" = []))
+)]
+pub fn get_self() -> Router {
     async fn handler(user: Extension<User>, state: Extension<Arc<AppState>>) -> impl IntoResponse {
         get_or_create_economy_state(user.id, &state.conn)
             .await
