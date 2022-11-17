@@ -3,7 +3,7 @@ mod openapi;
 pub(crate) mod responses;
 pub(crate) mod routes;
 
-use axum::{middleware, Extension, Router};
+use axum::{Extension, Router};
 use economy_service_migration::{
     sea_orm::{Database, DbConn},
     Migrator, MigratorTrait,
@@ -14,10 +14,7 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::UsersServiceClient;
 
-use crate::{
-    middlewares::auth_middleware,
-    routes::{get_by_id, get_self},
-};
+use crate::routes::{get_by_id, get_self};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
@@ -52,8 +49,7 @@ pub async fn main() {
 
     let app = Router::new().merge(openapi::ApiDoc::router()).merge(
         Router::new()
-            // TODO: maybe include middleware in route?
-            .merge(get_self().layer(middleware::from_fn(auth_middleware)))
+            .merge(get_self())
             .merge(get_by_id())
             .layer(Extension(Arc::new(state)))
             .layer(TraceLayer::new_for_http()),

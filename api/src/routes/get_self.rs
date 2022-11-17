@@ -1,9 +1,11 @@
-use axum::{http::StatusCode, response::IntoResponse, routing::get, Extension, Json, Router};
+use axum::{
+    http::StatusCode, middleware, response::IntoResponse, routing::get, Extension, Json, Router,
+};
 use economy_service_core::get_or_create_economy_state;
 use std::sync::Arc;
 use users_service_client::User;
 
-use crate::{responses::AppError, AppState};
+use crate::{middlewares::auth_middleware, responses::AppError, AppState};
 
 /// Fetch your economy state data
 #[utoipa::path(
@@ -27,5 +29,8 @@ pub fn get_self() -> Router {
             })
     }
 
-    Router::new().route("/me", get(handler))
+    Router::new().route(
+        "/me",
+        get(handler).layer(middleware::from_fn(auth_middleware)),
+    )
 }
