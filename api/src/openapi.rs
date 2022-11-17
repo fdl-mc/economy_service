@@ -31,7 +31,7 @@ const DOCS_TEMPLATE: &'static str = r#"<!DOCTYPE html>
 
 #[derive(OpenApi, Debug)]
 #[openapi(
-    paths(routes::get_self),
+    paths(routes::get_by_id, routes::get_self),
     components(schemas(EconomyState, AppError)),
     modifiers(&SecurityAddon, &InfoAddon),
 )]

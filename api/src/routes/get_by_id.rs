@@ -6,6 +6,17 @@ use std::sync::Arc;
 
 use crate::{responses::AppError, AppState};
 
+/// Fetch economy state of user by their ID
+#[utoipa::path(
+    get, path = "/{id}", tag = "Economy state",
+    params(
+        ("id" = String, Path)
+    ),
+    responses(
+        (status = 200, body = EconomyState),
+        (status = 404, body = AppError),
+    ),
+)]
 pub(crate) fn get_by_id() -> Router {
     async fn handler(
         Path(id): Path<i32>,

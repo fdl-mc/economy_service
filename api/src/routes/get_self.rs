@@ -5,11 +5,12 @@ use users_service_client::User;
 
 use crate::{responses::AppError, AppState};
 
+/// Fetch your economy state data
 #[utoipa::path(
-    get,
-    path = "/me",
+    get, path = "/me", tag = "Economy state",
     responses(
-        (status = 200, body = EconomyState)
+        (status = 200, body = EconomyState),
+        (status = 401, body = AppError),
     ),
     security(("api_key" = []))
 )]
