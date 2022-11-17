@@ -13,12 +13,9 @@ use std::{net::SocketAddr, sync::Arc};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::UsersServiceClient;
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     middlewares::auth_middleware,
-    openapi::ApiDoc,
     routes::{get_by_id, get_self},
 };
 
@@ -53,16 +50,14 @@ pub async fn main() {
 
     Migrator::up(&state.conn, None).await.unwrap();
 
-    let app = Router::new()
-        .merge(SwaggerUi::new("/docs/*tail").url("/openapi.json", ApiDoc::openapi()))
-        .merge(
-            Router::new()
-                // TODO: maybe include middleware in route?
-                .merge(get_self().layer(middleware::from_fn(auth_middleware)))
-                .merge(get_by_id())
-                .layer(Extension(Arc::new(state)))
-                .layer(TraceLayer::new_for_http()),
-        );
+    let app = Router::new().merge(openapi::ApiDoc::router()).merge(
+        Router::new()
+            // TODO: maybe include middleware in route?
+            .merge(get_self().layer(middleware::from_fn(auth_middleware)))
+            .merge(get_by_id())
+            .layer(Extension(Arc::new(state)))
+            .layer(TraceLayer::new_for_http()),
+    );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on {}", addr);

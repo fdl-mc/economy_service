@@ -18,4 +18,3 @@ economy-service-entity = { path = "../entity" }
 economy-service-migration = { path = "../migration" }
 users-service-client = { path = "../users-service-client" }
 utoipa = { version = "2.2.0", features = ["axum_extras"] }
-utoipa-swagger-ui = { version = "2.0.1", features = ["axum"] }
