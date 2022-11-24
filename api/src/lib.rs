@@ -14,7 +14,7 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::UsersServiceClient;
 
-use crate::routes::{get_by_id, get_self};
+use crate::routes::{get_by_id, get_self, pay};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
@@ -51,6 +51,7 @@ pub async fn main() {
         Router::new()
             .merge(get_self())
             .merge(get_by_id())
+            .merge(pay())
             .layer(Extension(Arc::new(state)))
             .layer(TraceLayer::new_for_http()),
     );

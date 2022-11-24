@@ -4,6 +4,8 @@ use utoipa::{
     Modify, OpenApi,
 };
 
+use routes::DataPay;
+
 use crate::responses::AppError;
 use crate::routes;
 
@@ -31,8 +33,8 @@ const DOCS_TEMPLATE: &'static str = r#"<!DOCTYPE html>
 
 #[derive(OpenApi, Debug)]
 #[openapi(
-    paths(routes::get_by_id, routes::get_self),
-    components(schemas(EconomyState, AppError)),
+    paths(routes::get_by_id, routes::get_self, routes::pay),
+    components(schemas(EconomyState, AppError, DataPay)),
     modifiers(&SecurityAddon, &InfoAddon),
 )]
 pub(crate) struct ApiDoc;
