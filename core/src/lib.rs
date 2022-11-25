@@ -31,17 +31,10 @@ pub async fn get_or_create_economy_state(
 }
 
 pub async fn update_economy_state(
-    user_id: i32,
+    mut state: economy_state::ActiveModel,
     form: UpdateEconomyStateForm,
     conn: &DbConn,
 ) -> DbResult<economy_state::Model> {
-    let mut state: economy_state::ActiveModel = economy_state::Entity::find()
-        .filter(economy_state::Column::UserId.eq(user_id))
-        .one(conn)
-        .await?
-        .ok_or(DbErr::RecordNotFound("Not found".to_owned()))
-        .map(Into::into)?;
-
     if form.balance.is_some() {
         state.balance = Set(form.balance.unwrap());
     }
