@@ -1,5 +1,5 @@
 pub(crate) mod middlewares;
-mod openapi;
+pub(crate) mod openapi;
 pub(crate) mod responses;
 pub(crate) mod routes;
 

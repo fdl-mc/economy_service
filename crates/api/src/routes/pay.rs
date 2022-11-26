@@ -6,7 +6,6 @@ use economy_service_core::{
     get_or_create_economy_state, update_economy_state, UpdateEconomyStateForm,
 };
 use economy_service_entity::economy_state;
-use economy_service_migration::sea_orm::Set;
 use serde::Deserialize;
 use std::sync::Arc;
 use users_service_client::{GetUserResponse, User};
