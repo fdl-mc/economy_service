@@ -1,6 +1,9 @@
-FROM rust:latest
+FROM rust:latest as builder
 WORKDIR /app
 COPY . .
-RUN apt update && apt install -y cmake
-RUN cargo install --path .
-CMD ["economy_service"]
+RUN cargo build --release --package economy_service
+
+FROM scratch
+WORKDIR /app
+COPY --from=builder /app/target/release/economy_service .
+CMD ["./economy_service"]

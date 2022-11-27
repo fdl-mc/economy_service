@@ -1,0 +1,21 @@
+[package]
+name = "economy-service-api"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+axum = "0.6.0"
+envy = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.21", features = ["macros"] }
+tower-http = { version = "0.3", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+economy-service-core = { path = "../core" }
+economy-service-entity = { path = "../entity" }
+economy-service-migration = { path = "../migration" }
+users-service-client = { path = "../users-service-client" }
+utoipa = { version = "2.2.0", features = ["axum_extras"] }
+sea-orm = { version = "0.10.4", default-features = false }

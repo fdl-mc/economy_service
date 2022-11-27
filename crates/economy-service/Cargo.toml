@@ -1,0 +1,8 @@
+[package]
+name = "economy_service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+economy-service-api = { path = "../api" }
+utoipa = { version = "2.2.0", features = ["axum_extras"] }

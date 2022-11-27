@@ -1,12 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+#[derive(DeriveMigrationName)]
 pub struct Migration;
-
-impl MigrationName for Migration {
-    fn name(&self) -> &str {
-        "m20220101_000001_create_table"
-    }
-}
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
@@ -19,9 +14,9 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(EconomyStates::Id)
                             .integer()
+                            .primary_key()
                             .not_null()
-                            .auto_increment()
-                            .primary_key(),
+                            .auto_increment(),
                     )
                     .col(
                         ColumnDef::new(EconomyStates::UserId)
@@ -29,8 +24,18 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unique_key(),
                     )
-                    .col(ColumnDef::new(EconomyStates::Balance).integer().not_null())
-                    .col(ColumnDef::new(EconomyStates::Banker).boolean().not_null())
+                    .col(
+                        ColumnDef::new(EconomyStates::Balance)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(
+                        ColumnDef::new(EconomyStates::Banker)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
                     .to_owned(),
             )
             .await?;

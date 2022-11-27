@@ -1,0 +1,8 @@
+[package]
+name = "economy-service-migration"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+sea-orm-migration = { version = "^0.10.0", default-features = false }

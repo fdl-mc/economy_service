@@ -7,7 +7,7 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - 8031:5432
+      - 8021:5432
     environment:
       - POSTGRES_DB=fdl
 
@@ -17,6 +17,6 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - USERS_SERVICE_URL=${USERS_SERVICE_URL}
     ports:
-      - 8030:8000
+      - 8020:8000
     depends_on:
       - db

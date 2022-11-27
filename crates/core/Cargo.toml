@@ -1,0 +1,9 @@
+[package]
+name = "economy-service-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+sea-orm = { version = "^0.10.0", features = ["macros", "runtime-tokio-rustls", "sqlx-postgres"] }
+economy-service-entity = { path = "../entity" }
