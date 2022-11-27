@@ -40,7 +40,7 @@ impl GetSelfResponse {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UsersServiceClient {
     base_url: String,
     client: reqwest::Client,

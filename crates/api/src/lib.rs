@@ -1,15 +1,18 @@
-pub(crate) mod middlewares;
+pub(crate) mod extractors;
 pub(crate) mod openapi;
 pub(crate) mod responses;
 pub(crate) mod routes;
 
-use axum::{Extension, Router};
+use axum::{
+    routing::{get, put},
+    Router,
+};
 use economy_service_migration::{
     sea_orm::{Database, DbConn},
     Migrator, MigratorTrait,
 };
 use serde::Deserialize;
-use std::{net::SocketAddr, sync::Arc};
+use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::UsersServiceClient;
@@ -22,7 +25,7 @@ pub(crate) struct Config {
     users_service_url: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct AppState {
     users_client: UsersServiceClient,
     conn: DbConn,
@@ -47,14 +50,16 @@ pub async fn main() {
 
     Migrator::up(&state.conn, None).await.unwrap();
 
-    let app = Router::new().merge(openapi::ApiDoc::router()).merge(
-        Router::new()
-            .merge(get_self())
-            .merge(get_by_id())
-            .merge(pay())
-            .layer(Extension(Arc::new(state)))
-            .layer(TraceLayer::new_for_http()),
-    );
+    let app = Router::new()
+        .merge(
+            Router::new()
+                .route("/:id", get(get_by_id))
+                .route("/me", get(get_self))
+                .route("/:id/pay", put(pay))
+                .with_state(state),
+        )
+        .merge(openapi::ApiDoc::router().with_state(()))
+        .layer(TraceLayer::new_for_http());
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on {}", addr);
