@@ -1,8 +1,10 @@
 use serde::Serialize;
 use utoipa::ToSchema;
 
+/// Service error data
 #[derive(Debug, Serialize, ToSchema)]
 pub(crate) struct AppError {
+    /// Error detail message
     detail: String,
 }
 impl AppError {

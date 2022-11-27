@@ -12,14 +12,13 @@ use crate::{responses::AppError, AppState};
 #[utoipa::path(
     get, path = "/{id}", tag = "Economy state",
     params(
-        ("id" = String, Path)
+        ("id" = String, Path, description = "Target user ID")
     ),
     responses(
-        (status = 200, body = EconomyState),
-        (status = 404, body = AppError),
+        (status = 200, body = EconomyState, description = "Successful fetch"),
+        (status = 404, body = AppError, description = "User not found"),
     ),
 )]
-
 pub(crate) async fn get_by_id(
     Path(id): Path<i32>,
     State(state): State<AppState>,

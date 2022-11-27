@@ -13,6 +13,7 @@ use serde::Deserialize;
 use users_service_client::GetUserResponse;
 use utoipa::ToSchema;
 
+/// Data used in pay operation
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct DataPay {
     /// Amount of money to pay
