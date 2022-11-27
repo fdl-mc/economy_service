@@ -7,14 +7,14 @@ A main virtual currency payments gateway.
 ### Via Docker
 1. Install the latest Docker version
 2. Clone this repository
-3. Run `make build` (or `docker build -t fdl-mc/api/economy .`) in the project root directory to build an image
-4. Run `make build` and then `make run` (or `make deploy` if you wanna run it as a daemon)
+3. Run `docker build -t economy_service .` in the project root directory to build an image
+4. Run the image with `docker run economy_service`
 
 ### Manually
 1. Install the latest Rust version
 2. Clone this repository
-3. Run `cargo build --release` in the project root directory
-4. Run the executable in `./target/release/Economy_service`
+3. Run `cargo build --release --package economy_service` in the project root directory
+4. Run the executable in `./target/release/economy_service`
 
 
 ## Environment variables
