@@ -4,7 +4,7 @@ pub(crate) mod responses;
 pub(crate) mod routes;
 
 use axum::{
-    routing::{get, put},
+    routing::{get, patch, put},
     Router,
 };
 use economy_service_migration::{
@@ -17,7 +17,7 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use users_service_client::UsersServiceClient;
 
-use crate::routes::{get_by_id, get_self, pay};
+use crate::routes::{add_money, get_by_id, get_self, pay};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
@@ -54,6 +54,7 @@ pub async fn main() {
         .merge(
             Router::new()
                 .route("/:id", get(get_by_id))
+                .route("/:id", patch(add_money))
                 .route("/me", get(get_self))
                 .route("/:id/pay", put(pay))
                 .with_state(state),
