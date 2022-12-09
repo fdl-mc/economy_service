@@ -12,7 +12,7 @@ use utoipa::ToSchema;
 
 use crate::{extractors::AuthenticatedUser, responses::AppError, AppState};
 
-/// Data used in pay operation
+/// Data used in add money operation
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct DataAddMoney {
     /// Amount of money to add
