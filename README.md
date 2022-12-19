@@ -18,10 +18,12 @@ A main virtual currency payments gateway.
 
 
 ## Environment variables
-| Variable          | Purpose                                           |
-|-------------------|---------------------------------------------------|
-| USERS_SERVICE_URL | URL to the users service                          |
-| DATABASE_URL      | Database URL (supports Postgres, MySQL or SQLite) |
+| Variable          | Purpose                  |
+|-------------------|--------------------------|
+| USERS_SERVICE_URL | Users service URL        |
+| DATABASE_URL      | postgres:// database URL |
+
+Note that the docker-compose.yml in this repo uses USERS_SERVICE_URL and POSTGRES_PASSWORD environment variables.
 
 
 ## License

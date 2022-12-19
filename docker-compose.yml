@@ -10,13 +10,16 @@ services:
       - 8021:5432
     environment:
       - POSTGRES_DB=fdl
+      - POSTGRES_USER=fdl
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   api:
-    image: fdl-mc/api/economy
+    image: fdl_economy_service
+    restart: always
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://fdl:${POSTGRES_PASSWORD}@db/fdl
       - USERS_SERVICE_URL=${USERS_SERVICE_URL}
     ports:
-      - 8020:8000
+      - 8020:8020
     depends_on:
       - db
