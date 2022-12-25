@@ -2,6 +2,8 @@ pipeline:
   check:
     image: rust
     commands:
+      - rustup component add rustfmt
+      - rustup component add clippy
       - cargo check
       - cargo fmt --check
       - cargo clippy --no-deps -- -Dwarnings
