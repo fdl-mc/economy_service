@@ -9,7 +9,7 @@ use routes::{DataAddMoney, DataPay};
 use crate::responses::AppError;
 use crate::routes;
 
-const DOCS_TEMPLATE: &'static str = r#"<!DOCTYPE html>
+const DOCS_TEMPLATE: &str = r#"<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
