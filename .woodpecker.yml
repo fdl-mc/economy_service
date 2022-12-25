@@ -2,15 +2,9 @@ pipeline:
   check:
     image: rust
     commands:
-      - echo "Installing components..."
       - rustup component add rustfmt
       - rustup component add clippy
 
-      - echo "Checking build..."
       - cargo check --quiet
-
-      - echo "Checking formatting..."
-      - cargo fmt --check -- quiet
-
-      - echo "Checking lints..."
+      - cargo fmt --check --quiet
       - cargo clippy --no-deps --quiet -- -Dwarnings
