@@ -1,0 +1,7 @@
+pipeline:
+  check:
+    image: rust
+    commands:
+      - cargo check
+      - cargo fmt --check
+      - cargo clippy --no-deps -- -Dwarnings
