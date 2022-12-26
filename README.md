@@ -1,3 +1,5 @@
+> ⚠️ Moved to https://codeberg.org/FDL/economy_service
+
 # Economy API Service
 A main virtual currency payments gateway.
 
